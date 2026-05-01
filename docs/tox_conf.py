@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, ClassVar, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from docutils.nodes import Element, Node, Text, container, fully_normalize_name, literal, paragraph, reference, strong
 from docutils.parsers.rst.directives import flag, unchanged, unchanged_required
@@ -19,7 +19,7 @@ LOGGER = getLogger(__name__)
 class ToxConfig(SphinxDirective):
     name = "conf"
     has_content = True
-    option_spec: ClassVar[dict[str, Any]] = {
+    option_spec: dict[str, Any] = {  # noqa: RUF012
         "keys": unchanged_required,
         "version_added": unchanged,
         "version_deprecated": unchanged,
