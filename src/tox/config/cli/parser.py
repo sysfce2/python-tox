@@ -10,7 +10,7 @@ import sys
 from argparse import SUPPRESS, Action, ArgumentDefaultsHelpFormatter, ArgumentError, ArgumentParser, Namespace
 from pathlib import Path
 from types import UnionType
-from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Literal, TypeVar, cast, overload
 
 from colorama import Fore
 
@@ -29,6 +29,8 @@ if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
 
     from tox.session.state import State
+
+_N = TypeVar("_N", bound=Namespace)
 
 
 class ArgumentParserWithEnvAndConfig(ArgumentParser):
@@ -80,11 +82,20 @@ class ArgumentParserWithEnvAndConfig(ArgumentParser):
                 raise TypeError(action)
         return of_type
 
-    def parse_args(  # avoid defining all overloads
+    @overload
+    def parse_args(self, args: Sequence[str] | None = None, namespace: None = None) -> Namespace: ...
+
+    @overload
+    def parse_args(self, args: Sequence[str] | None, namespace: _N) -> _N: ...
+
+    @overload
+    def parse_args(self, *, namespace: _N) -> _N: ...
+
+    def parse_args(  # ty: ignore[invalid-method-override]  # astral-sh/ty#3389
         self,
         args: Sequence[str] | None = None,
-        namespace: Namespace | None = None,
-    ) -> Namespace:
+        namespace: _N | None = None,
+    ) -> _N:
         res, argv = self.parse_known_args(args, namespace)
         if argv:
             self.error(
@@ -93,7 +104,7 @@ class ArgumentParserWithEnvAndConfig(ArgumentParser):
             )
         if getattr(res, "no_capture", False) and getattr(res, "result_json", None):
             self.error("argument -i/--no-capture: not allowed with argument --result-json")
-        return cast("Namespace", res)
+        return cast("_N", res)
 
 
 class HelpFormatter(ArgumentDefaultsHelpFormatter):
@@ -374,11 +385,22 @@ class ToxParser(ArgumentParserWithEnvAndConfig):
         add_core_arguments(self)
         self.fix_defaults()
 
+    @overload
     def parse_known_args(
+        self, args: Sequence[str] | None = None, namespace: None = None
+    ) -> tuple[Parsed, list[str]]: ...
+
+    @overload
+    def parse_known_args(self, args: Sequence[str] | None, namespace: _N) -> tuple[_N, list[str]]: ...
+
+    @overload
+    def parse_known_args(self, *, namespace: _N) -> tuple[_N, list[str]]: ...
+
+    def parse_known_args(  # ty: ignore[invalid-method-override]  # astral-sh/ty#3389
         self,
         args: Sequence[str] | None = None,
-        namespace: Parsed | None = None,
-    ) -> tuple[Parsed, list[str]]:
+        namespace: _N | None = None,
+    ) -> tuple[_N, list[str]]:
         if args is None:
             args = sys.argv[1:]
         cmd_at: int | None = None
@@ -396,7 +418,7 @@ class ToxParser(ArgumentParserWithEnvAndConfig):
             args = "legacy", *args
         result = Parsed() if namespace is None else namespace
         _, args = super().parse_known_args(args, namespace=result)
-        return result, args
+        return cast("tuple[_N, list[str]]", (result, args))
 
 
 def add_core_arguments(parser: ArgumentParser) -> None:
