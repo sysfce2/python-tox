@@ -7,6 +7,32 @@
 .. towncrier release notes start
 
 **********************
+ v4.53.1 (2026-05-02)
+**********************
+
+Bug fixes - 4.53.1
+==================
+
+- Hardening pass on user-facing logging and config parsing:
+
+  - Mask secret-looking ``--key=value`` flag values in command logs (terminal warnings, ``.tox/<env>/log/*.log``, and
+    ``Outcome`` ``__repr__``) using the same keyword regex previously applied to environment variable values.
+  - Resolve PEP 723 ``script`` paths and reject any that escape ``tox_root``; cap the script read at 5 MiB so a symlink
+    to ``/dev/zero`` cannot exhaust memory.
+  - Replace ``eval()`` of a constructed ``Literal[...]`` string in the CLI parser with a direct
+    ``Literal[tuple(action.choices)]`` subscript.
+  - Pass ``timeout=30`` to ``urlopen`` when fetching a remote requirements file so a slow or unresponsive mirror cannot
+    hang ``tox`` indefinitely. (:issue:`3924`)
+
+- Allow the generated TOML schema to validate array values for ``deps``. (:issue:`3929`)
+- Correct type annotations for ``ArgumentParser.parse_args`` and ``parse_known_args`` overrides following `typeshed PR
+  #15613 <https://github.com/python/typeshed/pull/15613>`_, which widened the ``args`` parameter from ``Sequence[str]``
+  to ``Iterable[str]``. The narrower type in tox's overrides violated the Liskov substitution principle and caused
+  ``invalid-method-override`` errors with ``ty`` 0.0.33. Also correct the ``option_spec`` annotation in
+  ``docs/tox_conf.py`` to ``ClassVar[dict[str, Callable[[str], Any]]]`` matching the docutils stubs type.
+  (:issue:`3932`)
+
+**********************
  v4.53.0 (2026-04-14)
 **********************
 
