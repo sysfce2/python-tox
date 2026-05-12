@@ -7,6 +7,25 @@
 .. towncrier release notes start
 
 **********************
+ v4.54.0 (2026-05-12)
+**********************
+
+Features - 4.54.0
+=================
+
+- Declare the runtime dependencies of the ``tox.pytest`` plugin (``pytest``, ``devpi-process`` and ``pytest-mock``)
+  under a new ``testing`` extra, so plugin authors can pull them in via ``tox[testing]`` - by :user:`gaborbernat`.
+  (:issue:`3938`, :issue:`3940`)
+
+Bug fixes - 4.54.0
+==================
+
+- Extend the generated TOML schema to cover every ``replace`` table form (``env``, ``ref``, ``posargs``, ``glob``,
+  ``if``), including conditional replacements used inside ``commands``. A guard test asserts the schema stays in sync
+  with the loader implementation so future replace types cannot be added without a corresponding schema entry.
+  (:issue:`3939`)
+
+**********************
  v4.53.1 (2026-05-02)
 **********************
 
